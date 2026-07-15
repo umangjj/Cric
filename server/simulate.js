@@ -64,7 +64,7 @@ function simulateBall(batter) {
   let nextBatterIdx = 2;
   const scorecard = xi.map(p => ({ ...p, runs: 0, ballsFaced: 0, out: false }));
 
-  while (balls < 120 && wickets < 10) {
+  while (balls < 120 && wickets < 6) {
     balls++;
     const striker = scorecard[strikerIdx];
     striker.ballsFaced++;
@@ -74,7 +74,7 @@ function simulateBall(batter) {
     if (outcome === 'W') {
       wickets++;
       striker.out = true;
-      if (wickets < 10) {
+      if (wickets < 6) {
         strikerIdx = nextBatterIdx;
         nextBatterIdx++;
       }
@@ -88,7 +88,7 @@ function simulateBall(batter) {
 
     // Snapshot the score every 6 balls (1 over) OR if they get all out
    // Snapshot the score AND the players every 6 balls (1 over) OR if they get all out
-    if (balls % 6 === 0 || wickets === 10 || balls === 120) {
+    if (balls % 6 === 0 || wickets === 6 || balls === 120) {
       // Create a deep copy of the scorecard exactly as it looks right now
       const currentScorecard = scorecard.map(p => ({ ...p }));
       

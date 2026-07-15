@@ -14,6 +14,7 @@ export default function App() {
   const [gameState, setGameState] = useState(null);
   const [liveScore, setLiveScore] = useState(null); // Tracks the interval updates
   const [matchResult, setMatchResult] = useState(null); // Tracks the final winner
+  const [timeLeft, setTimeLeft] = useState(10);
   
 
   useEffect(() => {
@@ -41,6 +42,10 @@ export default function App() {
     socket.on('gameState_update', (newState) => {
       setGameState(newState);
       setErrorMessage('');
+    });
+
+    socket.on('timer_update', (time) => {
+      setTimeLeft(time);
     });
 
     socket.on('room_error', (msg) => {
@@ -75,6 +80,7 @@ export default function App() {
       socket.off('room_joined');
       socket.off('game_ready');
       socket.off('room_error');
+      socket.off('timer_update');
       socket.off('draft_complete');
       socket.off('opponent_left');
       socket.off('live_score_update');
@@ -101,10 +107,13 @@ export default function App() {
   // Determine if it is currently this client's turn
   const myIndex = gameState?.players.indexOf(socket.id);
   const isMyTurn = gameState && myIndex === gameState.turn;
+  const myTeam = gameState?.picks[socket.id] || [];
+  const opponentId = gameState?.players.find(id => id !== socket.id);
+  const opponentTeam = opponentId && gameState ? gameState.picks[opponentId] : [];
 
   return (
     <div style={{ padding: '40px', fontFamily: 'sans-serif', maxWidth: '600px', margin: '0 auto' }}>
-      <h1>7 for the Win</h1>
+      <h1>7 for the Win </h1>
       
       {/* LOBBY AND WAITING VIEWS (Unchanged) */}
       {gameStatus === 'lobby' && (
@@ -130,6 +139,13 @@ export default function App() {
             <h3>Room: {roomCode}</h3>
             <h3 style={{ color: isMyTurn ? 'green' : 'gray' }}>
               {isMyTurn ? "🚨 YOUR TURN" : "Opponent's Turn..."}
+              <span style={{ 
+                color: timeLeft <= 3 ? 'red' : 'inherit', 
+                marginLeft: '15px',
+                fontWeight: 'bold'
+                }}>
+            ⏳ {timeLeft}s
+              </span>
             </h3>
           </div>
           
@@ -150,7 +166,7 @@ export default function App() {
                   opacity: isMyTurn ? 1 : 0.6
                 }}
               >
-                {player.name} ({player.role})
+                {player.name} ({player.sr})
               </button>
             ))}
           </div>
@@ -161,15 +177,16 @@ export default function App() {
             <div>
               <h4>Your Team</h4>
               <ul>
-                {gameState.picks[socket.id]?.map(p => <li key={p.id}>{p.name}</li>)}
+                {/* Cleaned up! */}
+                {myTeam.map(p => <li key={p.id}>{p.name}</li>)}
               </ul>
             </div>
             
             <div>
               <h4>Opponent's Team</h4>
               <ul>
-                {/* Find the opponent's ID to render their picks */}
-                {gameState.picks[gameState.players.find(id => id !== socket.id)]?.map(p => <li key={p.id}>{p.name}</li>)}
+                {/* Cleaned up! */}
+                {opponentTeam.map(p => <li key={p.id}>{p.name}</li>)}
               </ul>
             </div>
           </div>
@@ -205,7 +222,7 @@ export default function App() {
             <div style={{ width: '45%' }}>
               <h3 style={{ textAlign: 'center' }}>Opponent's Score</h3>
               <p style={{ fontSize: '32px', fontWeight: 'bold', textAlign: 'center' }}>
-                {liveScore[gameState.players.find(id => id !== socket.id)]?.runs} / {liveScore[gameState.players.find(id => id !== socket.id)]?.wickets}
+                {liveScore[opponentId]?.runs} / {liveScore[opponentId]?.wickets}
               </p>
               <p style={{ textAlign: 'center' }}>Overs: {(liveScore[gameState.players.find(id => id !== socket.id)]?.balls / 6).toFixed(1)}</p>
               
