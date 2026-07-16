@@ -113,7 +113,7 @@ function startTurnTimer(roomCode) {
 
   if (room.timerInterval) clearInterval(room.timerInterval);
 
-  room.timeLeft = 10; // Giving them 30 seconds to pick!
+  room.timeLeft = 20;
   io.to(roomCode).emit('timer_update', room.timeLeft);
 
   room.timerInterval = setInterval(() => {
@@ -168,7 +168,7 @@ io.on('connection', (socket) => {
         turn: 0,
         pool: dbPlayers, // 3. USE THE DATABASE ARRAY!
         picks: { [socket.id]: [] },
-        timeLeft: 10,           // --- NEW: Start at 30 seconds
+        timeLeft: 20,           // --- NEW: Start at 30 seconds
         timerInterval: null     // --- NEW: Holds the ticking clock
       };
       

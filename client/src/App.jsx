@@ -15,7 +15,7 @@ export default function App() {
   const [gameState, setGameState] = useState(null);
   const [liveScore, setLiveScore] = useState(null); // Tracks the interval updates
   const [matchResult, setMatchResult] = useState(null); // Tracks the final winner
-  const [timeLeft, setTimeLeft] = useState(10);
+  const [timeLeft, setTimeLeft] = useState(20);
   
 
   useEffect(() => {
