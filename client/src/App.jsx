@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import './App.css';
 
 const socket = io('http://localhost:3001');
 
@@ -112,160 +113,202 @@ export default function App() {
   const opponentTeam = opponentId && gameState ? gameState.picks[opponentId] : [];
 
   return (
-    <div style={{ padding: '40px', fontFamily: 'sans-serif', maxWidth: '600px', margin: '0 auto' }}>
-      <h1>7 for the Win </h1>
-      
-      {/* LOBBY AND WAITING VIEWS (Unchanged) */}
-      {gameStatus === 'lobby' && (
-        <div style={{ padding: '20px', border: '1px solid #ccc' }}>
-          <button onClick={handleCreateRoom} style={{ padding: '10px', width: '100%', marginBottom: '10px' }}>Create Room</button>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <input value={joinInput} onChange={(e) => setJoinInput(e.target.value)} placeholder="Enter 4-digit code" style={{ flex: 1, padding: '10px' }} />
-            <button onClick={handleJoinRoom} style={{ padding: '10px' }}>Join</button>
-          </div>
-        </div>
-      )}
+      <div className="app-shell">
+      <h1 className="app-title">BE&T SEVEN</h1>
+      <p className="app-subtitle">
+        {isConnected ? 'Draft your SEVEN, then watch it play out live' : 'Connecting…'}
+      </p>
 
-      {gameStatus === 'waiting' && (
-        <div style={{ padding: '20px', border: '1px solid #ccc', backgroundColor: '#fff3cd' }}>
-          <h3>Room Created: {roomCode}</h3><p>Waiting for Player 2...</p>
-        </div>
-      )}
+      <div className="app-content">
+        
+        {/* --- LOBBY VIEW --- */}
+        {gameStatus === 'lobby' && (
+          <div className="card lobby-card">
+            <button className="btn btn-primary" onClick={handleCreateRoom}>
+              Create room
+            </button>
+            <div className="divider-label">or</div>
+            <div className="join-row">
+              <input
+                className="text-input"
+                value={joinInput}
+                onChange={(e) => setJoinInput(e.target.value)}
+                placeholder="Enter 4-digit code"
+              />
+              <button className="btn btn-secondary" onClick={handleJoinRoom}>
+                Join
+              </button>
+            </div>
+            {errorMessage && <p className="error-banner">{errorMessage}</p>}
+          </div>
+        )}
+
+        {/* --- WAITING VIEW --- */}
+        {gameStatus === 'waiting' && (
+          <div className="card waiting-card">
+            <p className="waiting-hint">Room created</p>
+            <div className="room-code">{roomCode}</div>
+            <p className="waiting-hint">
+              Share this code with a friend
+              <br />
+              Waiting for player 2
+              <span style={{ marginLeft: 8 }}>
+                <span className="spinner-dot" />
+                <span className="spinner-dot" />
+                <span className="spinner-dot" />
+              </span>
+            </p>
+          </div>
+        )}
 
       {/* --- NEW: THE DRAFT BOARD --- */}
-      {gameStatus === 'drafting' && gameState && (
-        <div style={{ border: '1px solid #ccc', padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3>Room: {roomCode}</h3>
-            <h3 style={{ color: isMyTurn ? 'green' : 'gray' }}>
-              {isMyTurn ? "🚨 YOUR TURN" : "Opponent's Turn..."}
-              <span style={{ 
-                color: timeLeft <= 3 ? 'red' : 'inherit', 
-                marginLeft: '15px',
-                fontWeight: 'bold'
-                }}>
-            ⏳ {timeLeft}s
-              </span>
-            </h3>
-          </div>
-          
-          {errorMessage && <p style={{ color: 'red', fontWeight: 'bold' }}>{errorMessage}</p>}
-
-          <hr style={{ margin: '20px 0' }} />
-
-          <h4>Available Pool</h4>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-            {gameState.pool.map((player) => (
-              <button 
-                key={player.id} 
-                onClick={() => handlePickPlayer(player.id)}
-                disabled={!isMyTurn}
-                style={{ 
-                  padding: '10px', 
-                  cursor: isMyTurn ? 'pointer' : 'not-allowed',
-                  opacity: isMyTurn ? 1 : 0.6
-                }}
-              >
-                {player.name} ({player.sr})
-              </button>
-            ))}
-          </div>
-
-          <hr style={{ margin: '20px 0' }} />
-
-          <div style={{ display: 'flex', gap: '40px' }}>
-            <div>
-              <h4>Your Team</h4>
-              <ul>
-                {/* Cleaned up! */}
-                {myTeam.map(p => <li key={p.id}>{p.name}</li>)}
-              </ul>
+        {gameStatus === 'drafting' && gameState && (
+          <div className="card">
+            <div className="draft-header">
+              <h3>Room: {roomCode}</h3>
+              <div className={`turn-indicator ${isMyTurn ? 'my-turn' : 'their-turn'}`}>
+                {isMyTurn ? "🚨 YOUR TURN" : "Opponent's Turn..."}
+                <span className={`timer ${timeLeft <= 3 ? 'urgent' : ''}`}>
+                  ⏳ {timeLeft}s
+                </span>
+              </div>
             </div>
-            
-            <div>
-              <h4>Opponent's Team</h4>
-              <ul>
-                {/* Cleaned up! */}
-                {opponentTeam.map(p => <li key={p.id}>{p.name}</li>)}
-              </ul>
+
+            {errorMessage && <p className="error-banner">{errorMessage}</p>}
+
+            <p className="section-label">Available Pool</p>
+            <div className="pool-grid">
+              {gameState.pool.map((player) => (
+                <button
+                  key={player.id}
+                  onClick={() => handlePickPlayer(player.id)}
+                  disabled={!isMyTurn}
+                  className="player-chip"
+                >
+                  {player.name}
+                  <span className="chip-sr">SR {player.sr}</span>
+                </button>
+              ))}
+            </div>
+
+            <hr className="divider" />
+
+            <div className="teams-row">
+              <div className="team-column">
+                <h4>Your Team ({myTeam.length}/7)</h4>
+                <ul className="team-list">
+                  {myTeam.map((p) => (
+                    <li key={p.id}>{p.name}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="team-column">
+                <h4>Opponent ({opponentTeam.length}/7)</h4>
+                <ul className="team-list">
+                  {opponentTeam.map((p) => (
+                    <li key={p.id}>{p.name}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
 {/* --- THE LIVE SCOREBOARD --- */}
-      {gameStatus === 'simulating' && liveScore && gameState && (
-        <div style={{ border: '2px solid red', padding: '20px', textAlign: 'center' }}>
-          <h2>🔴 LIVE MATCH</h2>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-around', margin: '20px 0', textAlign: 'left' }}>
-            
-            {/* Player 1 (You) */}
-            <div style={{ width: '45%' }}>
-              <h3 style={{ textAlign: 'center' }}>Your Score</h3>
-              <p style={{ fontSize: '32px', fontWeight: 'bold', textAlign: 'center' }}>
-                {liveScore[socket.id]?.runs} / {liveScore[socket.id]?.wickets}
-              </p>
-              <p style={{ textAlign: 'center' }}>Overs: {(liveScore[socket.id]?.balls / 6).toFixed(1)}</p>
+        {gameStatus === 'simulating' && liveScore && gameState && (
+          <div className="card live-card">
+            <div className="live-badge">
+              <span className="live-dot" />
+              Live Match
+            </div>
+
+            <div className="live-columns">
               
-              <hr />
-              <ul style={{ listStyle: 'none', padding: 0, fontSize: '14px' }}>
-                {liveScore[socket.id]?.scorecard.map(p => (
-                  <li key={p.id} style={{ padding: '4px 0', color: p.out ? 'gray' : 'black', fontWeight: p.ballsFaced > 0 && !p.out ? 'bold' : 'normal' }}>
-                    {p.name}: {p.runs} ({p.ballsFaced}) {p.out ? 'W' : (p.ballsFaced > 0 ? '*' : '')}
-                  </li>
-                ))}
-              </ul>
-            </div>
+              {/* --- YOUR SCORE --- */}
+              <div className="live-column">
+                <h4>Your Score</h4>
+                <p className="live-score">
+                  {liveScore[socket.id]?.runs} / {liveScore[socket.id]?.wickets}
+                </p>
+                <p className="live-overs">
+                  Overs {((liveScore[socket.id]?.balls || 0) / 6).toFixed(1)}
+                </p>
+                <ul className="scorecard-list">
+                  {/* Added an extra ?. before map just in case the array is slow to load! */}
+                  {liveScore[socket.id]?.scorecard?.map((p) => (
+                    <li
+                      key={p.id}
+                      className={p.out ? 'out' : p.ballsFaced > 0 ? 'batting' : ''}
+                    >
+                      {p.name}: {p.runs} ({p.ballsFaced}) {p.out ? 'W' : p.ballsFaced > 0 ? '*' : ''}
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-            {/* Player 2 (Opponent) */}
-            <div style={{ width: '45%' }}>
-              <h3 style={{ textAlign: 'center' }}>Opponent's Score</h3>
-              <p style={{ fontSize: '32px', fontWeight: 'bold', textAlign: 'center' }}>
-                {liveScore[opponentId]?.runs} / {liveScore[opponentId]?.wickets}
-              </p>
-              <p style={{ textAlign: 'center' }}>Overs: {(liveScore[gameState.players.find(id => id !== socket.id)]?.balls / 6).toFixed(1)}</p>
+              {/* --- OPPONENT'S SCORE --- */}
+              <div className="live-column">
+                <h4>Opponent's Score</h4>
+                <p className="live-score">
+                  {liveScore[opponentId]?.runs} / {liveScore[opponentId]?.wickets}
+                </p>
+                <p className="live-overs">
+                  Overs {((liveScore[opponentId]?.balls || 0) / 6).toFixed(1)}
+                </p>
+                <ul className="scorecard-list">
+                  {liveScore[opponentId]?.scorecard?.map((p) => (
+                    <li
+                      key={p.id}
+                      className={p.out ? 'out' : p.ballsFaced > 0 ? 'batting' : ''}
+                    >
+                      {p.name}: {p.runs} ({p.ballsFaced}) {p.out ? 'W' : p.ballsFaced > 0 ? '*' : ''}
+                    </li>
+                  ))}
+                </ul>
+              </div>
               
-              <hr />
-              <ul style={{ listStyle: 'none', padding: 0, fontSize: '14px' }}>
-                {liveScore[gameState.players.find(id => id !== socket.id)]?.scorecard.map(p => (
-                  <li key={p.id} style={{ padding: '4px 0', color: p.out ? 'gray' : 'black', fontWeight: p.ballsFaced > 0 && !p.out ? 'bold' : 'normal' }}>
-                    {p.name}: {p.runs} ({p.ballsFaced}) {p.out ? 'W' : (p.ballsFaced > 0 ? '*' : '')}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* --- THE FINAL SCOREBOARD --- */}
-      {gameStatus === 'finished' && matchResult && (
-        <div style={{ border: '2px solid gold', padding: '20px', backgroundColor: '#fff9e6', textAlign: 'center' }}>
-          <h2>🏆 Final Result 🏆</h2>
-          <div style={{ display: 'flex', justifyContent: 'space-around', margin: '20px 0' }}>
-            <div>
-              <h3>Your Team</h3>
-              <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                {matchResult[socket.id].finalRuns} / {matchResult[socket.id].finalWickets}
-              </p>
-            </div>
-            <div>
-              <h3>Opponent's Team</h3>
-              <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                {matchResult[gameState.players.find(id => id !== socket.id)].finalRuns} / {matchResult[gameState.players.find(id => id !== socket.id)].finalWickets}
-              </p>
             </div>
           </div>
-          <hr />
-          <h2 style={{ color: matchResult.winner === socket.id ? 'green' : 'red' }}>
-            {matchResult.winner === 'Tie' ? "It's a Tie!" : matchResult.winner === socket.id ? "🎉 YOU WON!" : "💀 YOU LOST!"}
-          </h2>
-        </div>
-      )}
+        )}
+
+        {/* --- THE FINAL SCOREBOARD --- */}
+        {gameStatus === 'finished' && matchResult && (
+          <div className="card result-card">
+            <p className="result-trophy">🏆 Final Result</p>
+            <div className="result-columns">
+              <div>
+                <h3>Your Team</h3>
+                <p className="result-score">
+                  {matchResult[socket.id].finalRuns} / {matchResult[socket.id].finalWickets}
+                </p>
+              </div>
+              <div>
+                <h3>Opponent</h3>
+                <p className="result-score">
+                  {matchResult[opponentId].finalRuns} / {matchResult[opponentId].finalWickets}
+                </p>
+              </div>
+            </div>
+            <hr className="divider" />
+            <p
+              className={`result-banner ${
+                matchResult.winner === 'Tie'
+                  ? 'tie'
+                  : matchResult.winner === socket.id
+                  ? 'win'
+                  : 'lose'
+              }`}
+            >
+              {matchResult.winner === 'Tie'
+                ? "It's a Tie!"
+                : matchResult.winner === socket.id
+                ? '🎉 You Won!'
+                : '💀 You Lost!'}
+            </p>
+          </div>
+        )}
+
+      </div> 
     </div>
-
-    
   );
 }
