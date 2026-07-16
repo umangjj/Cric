@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import './App.css';
 
-const socket = io('http://localhost:3001');
+const socket = io('https://best-seven.onrender.com');
 
 export default function App() {
   const [isConnected, setIsConnected] = useState(false);
