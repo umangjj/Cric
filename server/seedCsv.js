@@ -21,7 +21,7 @@ async function seedDatabase() {
     let idCounter = 1000; // 1. Start a counter
     
     // Read the CSV file row by row
-    fs.createReadStream('players.csv')
+    fs.createReadStream('Players.csv')
       .pipe(csv())
       .on('data', (row) => {
         // Here we map the CSV headers to our Mongoose Schema
